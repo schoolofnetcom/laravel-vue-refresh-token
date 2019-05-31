@@ -52,11 +52,13 @@
         },
         methods: {
             auth() {
-                this.$passport.accessToken(this.authData);
+                this.$passport.accessToken(this.authData).then((data) => {
+                    console.log('autenticado');
+                });
             },
             teste() {
                 axios.get('/api/user').then((res) => {
-                    console.log('usuário atual: ',res.data);
+                    console.log('usuário atual: ', res.data);
                 });
             }
         },

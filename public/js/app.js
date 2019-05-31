@@ -1828,7 +1828,9 @@ __webpack_require__.r(__webpack_exports__);
   },
   methods: {
     auth: function auth() {
-      this.$passport.accessToken(this.authData);
+      this.$passport.accessToken(this.authData).then(function (data) {
+        console.log('autenticado');
+      });
     },
     teste: function teste() {
       axios.get('/api/user').then(function (res) {
@@ -50310,18 +50312,7 @@ module.exports = function(module) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js");
-/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _passport__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./passport */ "./resources/js/passport.js");
-/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! axios */ "./node_modules/axios/index.js");
-/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(axios__WEBPACK_IMPORTED_MODULE_2__);
-
-
-function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
-
-function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
-
-
+/* harmony import */ var _passport__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./passport */ "./resources/js/passport.js");
 
 
 __webpack_require__(/*! ./bootstrap */ "./resources/js/bootstrap.js");
@@ -50329,59 +50320,15 @@ __webpack_require__(/*! ./bootstrap */ "./resources/js/bootstrap.js");
 window.Vue = __webpack_require__(/*! vue */ "./node_modules/vue/dist/vue.common.js");
 Vue.component('auth-component', __webpack_require__(/*! ./components/AuthComponent.vue */ "./resources/js/components/AuthComponent.vue")["default"]);
 Vue.use(__webpack_require__(/*! vue-cookies */ "./node_modules/vue-cookies/vue-cookies.js"));
-Vue.use(_passport__WEBPACK_IMPORTED_MODULE_1__["default"]);
-var app = new Vue({
-  el: '#app',
-  data: function data() {
-    return {
-      error_count: 0
-    };
-  },
-  beforeMount: function beforeMount() {
-    var _this = this;
-
-    axios.interceptors.response.use(null,
-    /*#__PURE__*/
-    function () {
-      var _ref = _asyncToGenerator(
-      /*#__PURE__*/
-      _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.mark(function _callee(error) {
-        var data;
-        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.wrap(function _callee$(_context) {
-          while (1) {
-            switch (_context.prev = _context.next) {
-              case 0:
-                _this.error_count++;
-
-                if (!(error.response.status === 401 && _this.error_count < 10 && _this.$passport.getRefreshToken())) {
-                  _context.next = 9;
-                  break;
-                }
-
-                _context.next = 4;
-                return _this.$passport.refreshToken();
-
-              case 4:
-                data = _context.sent;
-                error.config.headers.Authorization = 'Bearer ' + data.access_token;
-                return _context.abrupt("return", axios.request(error.config));
-
-              case 9:
-                return _context.abrupt("return", Promise.reject(error));
-
-              case 10:
-              case "end":
-                return _context.stop();
-            }
-          }
-        }, _callee);
-      }));
-
-      return function (_x) {
-        return _ref.apply(this, arguments);
-      };
-    }());
+Vue.use(_passport__WEBPACK_IMPORTED_MODULE_0__["default"], {
+  client_id: '2',
+  client_secret: 'PqFvDapAoL0GY1Sr03kqhOaalSZIAB3EqZCm0UPE',
+  refresh_fail_callback: function refresh_fail_callback() {
+    console.log('refresh token falhou');
   }
+});
+var app = new Vue({
+  el: '#app'
 });
 
 /***/ }),
@@ -50522,12 +50469,21 @@ __webpack_require__.r(__webpack_exports__);
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js");
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__);
+
+
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
 var cookies = __webpack_require__(/*! vue-cookies */ "./node_modules/vue-cookies/vue-cookies.js");
 
 var passport = {};
 
-passport.install = function (vue, options) {
+passport.install = function (Vue, options) {
   var $passport = {};
+  var error_count = 0;
 
   $passport.getRefreshToken = function () {
     return cookies.get('refresh_token');
@@ -50540,13 +50496,12 @@ passport.install = function (vue, options) {
   $passport.refreshToken = function () {
     var data = {
       grant_type: 'refresh_token',
-      client_id: '2',
-      client_secret: 'PqFvDapAoL0GY1Sr03kqhOaalSZIAB3EqZCm0UPE',
+      client_id: options.client_id,
+      client_secret: options.client_secret,
       refresh_token: $passport.getRefreshToken(),
       scope: ''
     };
     return axios.post('/oauth/token', data).then(function (res) {
-      console.log('token atualizado');
       cookies.set('access_token', res.data.access_token);
       cookies.set('refresh_token', res.data.refresh_token);
       axios.defaults.headers.common['Authorization'] = 'Bearer ' + res.data.access_token;
@@ -50557,26 +50512,80 @@ passport.install = function (vue, options) {
   $passport.accessToken = function (user) {
     var defaultData = {
       grant_type: 'password',
-      client_id: '2',
-      client_secret: 'PqFvDapAoL0GY1Sr03kqhOaalSZIAB3EqZCm0UPE',
+      client_id: options.client_id,
+      client_secret: options.client_secret,
       scope: ''
     };
     var data = Object.assign(defaultData, user);
-    axios.post('/oauth/token', data).then(function (res) {
-      console.log('autenticado');
+    return axios.post('/oauth/token', data).then(function (res) {
       cookies.set('access_token', res.data.access_token);
       cookies.set('refresh_token', res.data.refresh_token);
       axios.defaults.headers.common['Authorization'] = 'Bearer ' + res.data.access_token;
+      return res.data;
     });
   };
 
+  Vue.mixin({
+    beforeMount: function beforeMount() {
+      var _this = this;
+
+      axios.interceptors.response.use(null,
+      /*#__PURE__*/
+      function () {
+        var _ref = _asyncToGenerator(
+        /*#__PURE__*/
+        _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.mark(function _callee(error) {
+          var limit, data;
+          return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.wrap(function _callee$(_context) {
+            while (1) {
+              switch (_context.prev = _context.next) {
+                case 0:
+                  limit = options.refresh_limit || 10;
+                  error_count++;
+
+                  if (!(error.response.status === 401 && error_count < limit && $passport.getRefreshToken())) {
+                    _context.next = 10;
+                    break;
+                  }
+
+                  _context.next = 5;
+                  return _this.$passport.refreshToken();
+
+                case 5:
+                  data = _context.sent;
+                  error.config.headers.Authorization = 'Bearer ' + data.access_token;
+                  return _context.abrupt("return", axios.request(error.config));
+
+                case 10:
+                  if (options.refresh_fail_callback) {
+                    error_count = 0;
+                    options.refreshFailCallback();
+                  }
+
+                case 11:
+                  return _context.abrupt("return", Promise.reject(error));
+
+                case 12:
+                case "end":
+                  return _context.stop();
+              }
+            }
+          }, _callee);
+        }));
+
+        return function (_x) {
+          return _ref.apply(this, arguments);
+        };
+      }());
+    }
+  });
   var token = $passport.getAccessToken();
 
   if (token) {
     axios.defaults.headers.common['Authorization'] = 'Bearer ' + token;
   }
 
-  vue.prototype.$passport = $passport;
+  Vue.prototype.$passport = $passport;
 };
 
 /* harmony default export */ __webpack_exports__["default"] = (passport);
